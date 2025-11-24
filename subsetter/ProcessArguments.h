@@ -1,37 +1,37 @@
 #ifndef PROCESSARGUMENTS_H
 #define PROCESSARGUMENTS_H
 
-#include <time.h>
-#include <iostream>
-#include <string>
 #include <fstream>
-#include <sstream>
+#include <iostream>
 #include <memory>
+#include <sstream>
+#include <string>
+#include <time.h>
 
-#include <boost/property_tree/ptree.hpp>
-#include <boost/property_tree/json_parser.hpp>
+#include <boost/algorithm/string.hpp>
+#include <boost/foreach.hpp>
 #include <boost/program_options/options_description.hpp>
 #include <boost/program_options/parsers.hpp>
 #include <boost/program_options/variables_map.hpp>
-#include <boost/tokenizer.hpp>
-#include <boost/foreach.hpp>
+#include <boost/property_tree/json_parser.hpp>
+#include <boost/property_tree/ptree.hpp>
 #include <boost/regex.hpp>
-#include <boost/algorithm/string.hpp>
+#include <boost/tokenizer.hpp>
 
-#include "geobox.h"
 #include "LogLevel.h"
+#include "geobox.h"
 
 namespace program_options = boost::program_options;
 namespace property_tree = boost::property_tree;
 
 class ProcessArguments
 {
-public:
+  public:
     static constexpr int PASS = 0;
     static constexpr int ERROR = 1;
     static constexpr int SHOW_HELP_OR_NO_FILENAME = 2;
 
-    int process_args(int argc, char* argv[]);
+    int process_args(int argc, char *argv[]);
 
     std::string getInfilename() { return infilename; }
     std::string getOutfilename() { return outfilename; }
@@ -49,10 +49,13 @@ public:
     bool isReproject() { return reproject; }
 
     std::vector<geobox> *getGeoboxes() { return geoboxes; }
-    std::vector<std::string> getDatasetsToInclude() { return datasetsToInclude; }
+    std::vector<std::string> getDatasetsToInclude()
+    {
+        return datasetsToInclude;
+    }
     boost::property_tree::ptree getBoundingShapePt() { return boundingShapePt; }
 
-private:
+  private:
     void setLogLevel(program_options::variables_map variables_map);
     void setSubsettype(program_options::variables_map variables_map);
     void setConfigFile(program_options::variables_map variables_map);
@@ -62,11 +65,12 @@ private:
     void setCollectionShortname(program_options::variables_map variables_map);
 
     int showHelpVerifyFilename(program_options::options_description description,
-                                       program_options::variables_map variables_map);
+                               program_options::variables_map variables_map);
     int setInFileName(program_options::variables_map variables_map);
     int setOutFileName(program_options::variables_map variables_map);
     int setBoundingBox(program_options::variables_map variables_map);
-    int setStartEndTemporalParameters(program_options::variables_map variables_map);
+    int setStartEndTemporalParameters(
+        program_options::variables_map variables_map);
     int setBoundingShape(program_options::variables_map variables_map);
 
     std::string infilename;
@@ -84,10 +88,10 @@ private:
     std::string logFile;
     bool reproject;
 
-    std::vector<geobox> *geoboxes = nullptr; // Multiple bounding boxes can be specified.
+    std::vector<geobox> *geoboxes =
+        nullptr; // Multiple bounding boxes can be specified.
     std::vector<std::string> datasetsToInclude;
     boost::property_tree::ptree boundingShapePt;
-
 };
 
 #endif

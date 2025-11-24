@@ -1,17 +1,18 @@
 #ifndef Temporal_H
 #define Temporal_H
 
+#include "LogLevel.h"
+#include <algorithm>
+#include <boost/date_time/posix_time/posix_time.hpp>
+#include <exception>
 #include <iostream>
 #include <string>
-#include <algorithm>
-#include <exception>
-#include <boost/date_time/posix_time/posix_time.hpp>
-#include "LogLevel.h"
 
-// class to test whether dataset temporal value is within the range provided by user
+// class to test whether dataset temporal value is within the range provided by
+// user
 class Temporal
 {
-public:
+  public:
     /**
      * @brief Construct a new Temporal object using datetime string:
      *        YYYY-MM-DDTHH:MM:SS.ssssss
@@ -19,8 +20,8 @@ public:
      * @param e End time in datetime string format.
      * @param epochTime Reference time of start and end time values.
      */
-    Temporal(std::string s, std::string e, std::string epochTime="")
-    : epochUpdateRequired(true)
+    Temporal(std::string s, std::string e, std::string epochTime = "")
+        : epochUpdateRequired(true)
     {
         LOG_DEBUG("Temporal::Temporal(): ENTER");
 
@@ -32,26 +33,35 @@ public:
         replace(s.begin(), s.end(), 'Z', ' ');
         replace(e.begin(), e.end(), 'T', ' ');
         replace(e.begin(), e.end(), 'Z', ' ');
-        myReferenceTime = (epochTime.empty())? unixEpochTime : epochTime;
+        myReferenceTime = (epochTime.empty()) ? unixEpochTime : epochTime;
         try
         {
-            boost::posix_time::ptime referTime(boost::posix_time::time_from_string(myReferenceTime));
-            boost::posix_time::ptime startTime(boost::posix_time::time_from_string(s));
-            boost::posix_time::ptime endTime(boost::posix_time::time_from_string(e));
-            boost::posix_time::time_duration startSinceReference = startTime - referTime;
-            boost::posix_time::time_duration endSinceReference = endTime - referTime;
-            start = (double)startSinceReference.total_microseconds()/1000000.0;
-            end = (double)endSinceReference.total_microseconds()/1000000.0;
+            boost::posix_time::ptime referTime(
+                boost::posix_time::time_from_string(myReferenceTime));
+            boost::posix_time::ptime startTime(
+                boost::posix_time::time_from_string(s));
+            boost::posix_time::ptime endTime(
+                boost::posix_time::time_from_string(e));
+            boost::posix_time::time_duration startSinceReference =
+                startTime - referTime;
+            boost::posix_time::time_duration endSinceReference =
+                endTime - referTime;
+            start =
+                (double)startSinceReference.total_microseconds() / 1000000.0;
+            end = (double)endSinceReference.total_microseconds() / 1000000.0;
         }
         catch (std::exception &ex)
         {
-            LOG_ERROR("Temporal::Temporal(): ERROR: Temporal.ctor failed to parse the time strings " << s << " " << e);
+            LOG_ERROR(
+                "Temporal::Temporal(): ERROR: Temporal.ctor failed to parse "
+                "the time strings "
+                << s << " " << e);
             std::exception_ptr p = std::current_exception();
             rethrow_exception(p);
         }
         std::cout.setf(std::ios::fixed); // to print more precision
         LOG_DEBUG("Temporal::Temporal(): start end " << start << " " << end);
-        std::cout.unsetf(std::ios_base::floatfield); //set back
+        std::cout.unsetf(std::ios_base::floatfield); // set back
     }
 
     /**
@@ -65,35 +75,22 @@ public:
      * @param s Start time in seconds since epoch.
      * @param e End time in seconds since epoch.
      */
-    Temporal(double s, double e)
-    : epochUpdateRequired(false)
+    Temporal(double s, double e) : epochUpdateRequired(false)
     {
         myReferenceTime = "";
         start = s;
         end = e;
     }
 
-    double getStart()
-    {
-        return this->start;
-    }
+    double getStart() { return this->start; }
 
-    double getEnd()
-    {
-        return this->end;
-    }
+    double getEnd() { return this->end; }
 
     // return the start date time string
-    std::string getStartTime()
-    {
-        return convertToDateTimeString(this->start);
-    }
+    std::string getStartTime() { return convertToDateTimeString(this->start); }
 
     // return the end date time string
-    std::string getEndTime()
-    {
-        return convertToDateTimeString(this->end);
-    }
+    std::string getEndTime() { return convertToDateTimeString(this->end); }
 
     // update reference time if it differs from the dataset's epoch.
     // if the epochUpdateRequired is set to false, we don't update.
@@ -124,30 +121,35 @@ public:
 
         try
         {
-            boost::posix_time::time_duration diffTime = boost::posix_time::ptime(boost::posix_time::time_from_string(referenceTime)) - boost::posix_time::ptime(boost::posix_time::time_from_string(myReferenceTime));
-            double diffSeconds = (double)diffTime.total_microseconds()/1000000.0;
+            boost::posix_time::time_duration diffTime =
+                boost::posix_time::ptime(
+                    boost::posix_time::time_from_string(referenceTime)) -
+                boost::posix_time::ptime(
+                    boost::posix_time::time_from_string(myReferenceTime));
+            double diffSeconds =
+                (double)diffTime.total_microseconds() / 1000000.0;
             start -= diffSeconds;
             end -= diffSeconds;
             myReferenceTime = referenceTime;
         }
         catch (std::exception &ex)
         {
-            LOG_ERROR("ERROR: Temporal.updateReferenceTime failed to parse the time strings " << referenceTime);
+            LOG_ERROR(
+                "ERROR: Temporal.updateReferenceTime failed to parse the time "
+                "strings "
+                << referenceTime);
             std::exception_ptr p = std::current_exception();
             rethrow_exception(p);
         }
         std::cout.setf(std::ios::fixed); // to print more precision
-        LOG_DEBUG("Temporal::updateReferenceTime(): start end " << start << " " << end);
-        std::cout.unsetf(std::ios_base::floatfield); //set back
-
+        LOG_DEBUG("Temporal::updateReferenceTime(): start end " << start << " "
+                                                                << end);
+        std::cout.unsetf(std::ios_base::floatfield); // set back
     }
 
-    bool contains(double t)
-    {
-        return (t >= start && t <= end);
-    }
+    bool contains(double t) { return (t >= start && t <= end); }
 
-private:
+  private:
     // convert to the date time std::string in format YYYY-MM-DDTHH:MM:SS.ffffff
     std::string convertToDateTimeString(double timeInSeconds)
     {
@@ -156,12 +158,16 @@ private:
             // parse the integer and fractional part
             double intpart;
             double fractpart = modf(timeInSeconds, &intpart);
-            boost::posix_time::ptime t = boost::posix_time::time_from_string(myReferenceTime) + boost::posix_time::seconds((long)intpart) + boost::posix_time::microseconds((long)(fractpart*1000000.0));
+            boost::posix_time::ptime t =
+                boost::posix_time::time_from_string(myReferenceTime) +
+                boost::posix_time::seconds((long)intpart) +
+                boost::posix_time::microseconds((long)(fractpart * 1000000.0));
             return to_iso_extended_string(t);
         }
-        catch(const std::exception &ex)
+        catch (const std::exception &ex)
         {
-            LOG_INFO("Temporal::convertToDateTimeString: " << ex.what() << ", setting date time to 00:00:00.000000");
+            LOG_INFO("Temporal::convertToDateTimeString: "
+                     << ex.what() << ", setting date time to 00:00:00.000000");
             return std::string("00:00:00.000000");
         }
     }
@@ -180,7 +186,6 @@ private:
 
     // use as default epoch time
     std::string unixEpochTime = "1970-01-01 00:00:00.000000";
-
 };
 
 #endif
